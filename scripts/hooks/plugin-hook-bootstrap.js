@@ -97,7 +97,12 @@ function findShellBinary() {
       windowsHide: true,
       timeout: 30000,
     });
-    if (!probe.error) {
+    // Accept a candidate only if it actually ran: `!probe.error` means the
+    // binary spawned, but a non-functional stub (e.g. Windows' System32\bash.exe
+    // WSL launcher with no distro installed) spawns fine yet exits non-zero.
+    // Require the probe (`-c :` / `exit 0`) to succeed so we never treat a
+    // broken shell as usable.
+    if (!probe.error && probe.status === 0) {
       _cachedShell = candidate;
       return _cachedShell;
     }
@@ -118,7 +123,12 @@ function findBashBinary() {
 
   for (const candidate of candidates) {
     const probe = spawnSync(candidate, ['-c', ':'], { stdio: 'ignore', windowsHide: true, timeout: 30000 });
-    if (!probe.error) {
+    // Accept a candidate only if it actually ran: `!probe.error` means the
+    // binary spawned, but a non-functional stub (e.g. Windows' System32\bash.exe
+    // WSL launcher with no distro installed) spawns fine yet exits non-zero.
+    // Require the probe (`-c :` / `exit 0`) to succeed so we never treat a
+    // broken shell as usable.
+    if (!probe.error && probe.status === 0) {
       _cachedBash = candidate;
       return _cachedBash;
     }
